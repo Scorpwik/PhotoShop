@@ -23,58 +23,83 @@ const categoryNames: Record<string, string> = {
   almacenamiento: "Almacenamiento",
 }
 
-export const catalogProducts: CatalogProduct[] = [
+const catalogSource = [
   {
     id: "sony-alpha-7",
     handle: "sony-alpha-7",
     name: "Sony α7",
     category: "Cámaras",
-    categorySlug: "camaras",
-    price: "2498 €",
+    categorySlug: "camaras" as const,
     image: "/products/sony-alpha-7.jpg",
     badge: "NEW",
+    eur: 2498,
+    usd: 2698,
   },
   {
     id: "lentes-sony-fe",
     handle: "lentes-sony-fe",
     name: "Lentes Sony FE",
     category: "Lentes",
-    categorySlug: "lentes",
-    price: "1798 €",
+    categorySlug: "lentes" as const,
     image: "/products/lentes-sony-fe.jpg",
     badge: null,
+    eur: 1798,
+    usd: 1948,
   },
   {
     id: "sony-fe-70-200-gm",
     handle: "sony-fe-70-200-gm",
     name: "Sony FE 70-200mm GM OSS",
     category: "Lentes",
-    categorySlug: "lentes",
-    price: "2798 €",
+    categorySlug: "lentes" as const,
     image: "/products/sony-fe-70-200.jpg",
     badge: "HOT",
+    eur: 2798,
+    usd: 2998,
   },
   {
     id: "tripode-fibra-carbono",
     handle: "tripode-fibra-carbono",
     name: "Trípode de fibra de carbono",
     category: "Trípodes",
-    categorySlug: "tripodes",
-    price: "449 €",
+    categorySlug: "tripodes" as const,
     image: "/products/tripode-carbono.jpg",
     badge: null,
+    eur: 449,
+    usd: 489,
   },
   {
     id: "kit-fotografia",
     handle: "kit-fotografia",
     name: "Kit de fotografía",
     category: "Accesorios",
-    categorySlug: "accesorios",
-    price: "1498 €",
+    categorySlug: "accesorios" as const,
     image: "/products/kit-fotografia.jpg",
     badge: null,
+    eur: 1498,
+    usd: 1628,
   },
 ]
+
+export function catalogForCountry(countryCode?: string): CatalogProduct[] {
+  const currency = countryCode === "ec" ? "usd" : "eur"
+
+  return catalogSource.map((product) => ({
+    id: product.id,
+    handle: product.handle,
+    name: product.name,
+    category: product.category,
+    categorySlug: product.categorySlug,
+    image: product.image,
+    badge: product.badge,
+    price: formatPrice(
+      currency === "usd" ? product.usd : product.eur,
+      currency
+    ),
+  }))
+}
+
+export const catalogProducts = catalogForCountry("dk")
 
 type StoreRegion = {
   id: string
@@ -135,7 +160,9 @@ function mapStoreProduct(product: StoreProduct): CatalogProduct {
   }
 }
 
-export async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
+export async function fetchCatalogProducts(
+  countryCode = "dk"
+): Promise<CatalogProduct[]> {
   const backend =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
   const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
@@ -159,15 +186,19 @@ export async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
   }
   const region =
     regions.find((item) =>
+      item.countries?.some((country) => country.iso_2 === countryCode)
+    ) ||
+    regions.find((item) =>
       item.countries?.some((country) => country.iso_2 === "dk")
-    ) || regions[0]
+    ) ||
+    regions[0]
 
   if (!region) {
     throw new Error("La tienda no tiene una región configurada.")
   }
 
   const productsResponse = await fetch(
-    `${backend}/store/products?limit=20&region_id=${region.id}&fields=*variants.calculated_price,*categories,*images`,
+    `${backend}/store/products?limit=20&region_id=${region.id}&fields=*variants.calculated_price,*categories,*images,+metadata`,
     { headers, cache: "no-store" }
   )
 
@@ -213,7 +244,7 @@ export function mergeCatalog(
     }
 
     seen.add(product.handle)
-    return [next]
+    return [{ ...next, badge: next.badge || product.badge }]
   })
 
   for (const product of orderCatalog(incoming)) {

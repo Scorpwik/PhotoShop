@@ -34,12 +34,40 @@ export const retrieveRegion = async (id: string) => {
 
 const regionMap = new Map<string, HttpTypes.StoreRegion>()
 
-export const getRegion = async (countryCode: string) => {
-  if (regionMap.has(countryCode)) {
-    return regionMap.get(countryCode)
+async function loadRegions() {
+  const backend =
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
+  const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+
+  if (!publishableKey) {
+    return null
   }
 
-  const regions = await listRegions()
+  const response = await fetch(`${backend}/store/regions?limit=50`, {
+    headers: {
+      "x-publishable-api-key": publishableKey,
+    },
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    return null
+  }
+
+  const { regions } = (await response.json()) as {
+    regions?: HttpTypes.StoreRegion[]
+  }
+
+  return regions ?? null
+}
+
+export const getRegion = async (countryCode: string) => {
+  const cached = regionMap.get(countryCode)
+  if (cached) {
+    return cached
+  }
+
+  const regions = (await loadRegions()) || (await listRegions())
 
   if (!regions) {
     return null
@@ -47,13 +75,11 @@ export const getRegion = async (countryCode: string) => {
 
   regions.forEach((region) => {
     region.countries?.forEach((c) => {
-      regionMap.set(c?.iso_2 ?? "", region)
+      if (c?.iso_2) {
+        regionMap.set(c.iso_2, region)
+      }
     })
   })
 
-  const region = countryCode
-    ? regionMap.get(countryCode)
-    : regionMap.get("us")
-
-  return region
+  return regionMap.get(countryCode) ?? null
 }

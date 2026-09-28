@@ -10,7 +10,7 @@ const regionMapCache = {
   regionMapUpdated: Date.now(),
 }
 
-async function getRegionMap(cacheId: string) {
+async function getRegionMap(cacheId: string, requestedCountry?: string) {
   const { regionMap, regionMapUpdated } = regionMapCache
 
   if (!BACKEND_URL) {
@@ -19,9 +19,16 @@ async function getRegionMap(cacheId: string) {
     )
   }
 
+  const missingCountry = Boolean(
+    requestedCountry &&
+      /^[a-z]{2}$/.test(requestedCountry) &&
+      !regionMap.has(requestedCountry)
+  )
+
   if (
     !regionMap.keys().next().value ||
-    regionMapUpdated < Date.now() - 3600 * 1000
+    regionMapUpdated < Date.now() - 3600 * 1000 ||
+    missingCountry
   ) {
     // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
     const response = await fetch(`${BACKEND_URL}/store/regions`, {
@@ -33,7 +40,7 @@ async function getRegionMap(cacheId: string) {
         revalidate: 3600,
         tags: [`regions-${cacheId}`],
       },
-      cache: "force-cache",
+      cache: missingCountry ? "no-store" : "force-cache",
       signal: AbortSignal.timeout(2500),
     })
 
@@ -49,10 +56,10 @@ async function getRegionMap(cacheId: string) {
       return new Map<string, HttpTypes.StoreRegion>()
     }
 
-    // Create a map of country codes to regions.
+    regionMap.clear()
     regions.forEach((region: HttpTypes.StoreRegion) => {
       region.countries?.forEach((c) => {
-        regionMapCache.regionMap.set(c.iso_2 ?? "", region)
+        regionMap.set(c.iso_2 ?? "", region)
       })
     })
 
@@ -109,9 +116,13 @@ export async function middleware(request: NextRequest) {
   const cacheIdCookie = request.cookies.get("_medusa_cache_id")
   const cacheId = cacheIdCookie?.value || crypto.randomUUID()
 
+  const requestedCountry = request.nextUrl.pathname
+    .split("/")[1]
+    ?.toLowerCase()
+
   let regionMap = new Map<string, HttpTypes.StoreRegion>()
   try {
-    regionMap = await getRegionMap(cacheId)
+    regionMap = await getRegionMap(cacheId, requestedCountry)
   } catch {
     regionMap = new Map<string, HttpTypes.StoreRegion>()
   }

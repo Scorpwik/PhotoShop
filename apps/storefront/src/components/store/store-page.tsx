@@ -2,14 +2,14 @@
 
 import {
   CatalogProduct,
-  catalogProducts,
+  catalogForCountry,
   fetchCatalogProducts,
   mergeCatalog,
 } from "@lib/catalog"
 import ProductCard from "@components/store/product-card"
 import { SlidersHorizontal } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 
 const filters = [
   { label: "Todos", value: "all" },
@@ -32,10 +32,13 @@ export default function StorePage({
   dealsOnly = false,
 }: StorePageProps) {
   const searchParams = useSearchParams()
+  const { countryCode } = useParams<{ countryCode: string }>()
   const categoryFromUrl = searchParams.get("category") || "all"
   const [active, setActive] = useState(categoryFromUrl)
   const [showFilters, setShowFilters] = useState(categoryFromUrl !== "all")
-  const [catalog, setCatalog] = useState<CatalogProduct[]>(catalogProducts)
+  const [catalog, setCatalog] = useState<CatalogProduct[]>(() =>
+    catalogForCountry(countryCode)
+  )
 
   useEffect(() => {
     setActive(categoryFromUrl)
@@ -46,8 +49,9 @@ export default function StorePage({
 
   useEffect(() => {
     let activeRequest = true
+    setCatalog(catalogForCountry(countryCode))
 
-    fetchCatalogProducts()
+    fetchCatalogProducts(countryCode)
       .then((products) => {
         if (activeRequest && products.length) {
           setCatalog((current) => mergeCatalog(current, products))
@@ -58,7 +62,7 @@ export default function StorePage({
     return () => {
       activeRequest = false
     }
-  }, [])
+  }, [countryCode])
 
   const products = useMemo(() => {
     const source = dealsOnly

@@ -287,6 +287,132 @@ export default async function initial_data_seed({
   });
   logger.info("Finished seeding fulfillment data.");
 
+  logger.info("Seeding Ecuador region...");
+  const { result: ecuadorRegionResult } = await createRegionsWorkflow(
+    container
+  ).run({
+    input: {
+      regions: [
+        {
+          name: "Ecuador",
+          currency_code: "usd",
+          countries: ["ec"],
+          payment_providers: ["pp_system_default"],
+        },
+      ],
+    },
+  });
+  const ecuadorRegion = ecuadorRegionResult[0];
+
+  await createTaxRegionsWorkflow(container).run({
+    input: [
+      {
+        country_code: "ec",
+        provider_id: "tp_system",
+      },
+    ],
+  });
+
+  const ecuadorFulfillmentSet =
+    await fulfillmentModuleService.createFulfillmentSets({
+      name: "Ecuador delivery",
+      type: "shipping",
+      service_zones: [
+        {
+          name: "Ecuador",
+          geo_zones: [
+            {
+              country_code: "ec",
+              type: "country",
+            },
+          ],
+        },
+      ],
+    });
+
+  await link.create({
+    [Modules.STOCK_LOCATION]: {
+      stock_location_id: stockLocation.id,
+    },
+    [Modules.FULFILLMENT]: {
+      fulfillment_set_id: ecuadorFulfillmentSet.id,
+    },
+  });
+
+  await createShippingOptionsWorkflow(container).run({
+    input: [
+      {
+        name: "Standard Shipping",
+        price_type: "flat",
+        provider_id: "manual_manual",
+        service_zone_id: ecuadorFulfillmentSet.service_zones[0].id,
+        shipping_profile_id: shippingProfile.id,
+        type: {
+          label: "Standard",
+          description: "Ship in 2-3 days.",
+          code: "standard",
+        },
+        prices: [
+          {
+            currency_code: "usd",
+            amount: 10,
+          },
+          {
+            region_id: ecuadorRegion.id,
+            amount: 10,
+          },
+        ],
+        rules: [
+          {
+            attribute: "enabled_in_store",
+            value: "true",
+            operator: "eq",
+          },
+          {
+            attribute: "is_return",
+            value: "false",
+            operator: "eq",
+          },
+        ],
+      },
+      {
+        name: "Express Shipping",
+        price_type: "flat",
+        provider_id: "manual_manual",
+        service_zone_id: ecuadorFulfillmentSet.service_zones[0].id,
+        shipping_profile_id: shippingProfile.id,
+        type: {
+          label: "Express",
+          description: "Ship in 24 hours.",
+          code: "express",
+        },
+        prices: [
+          {
+            currency_code: "usd",
+            amount: 10,
+          },
+          {
+            region_id: ecuadorRegion.id,
+            amount: 10,
+          },
+        ],
+        rules: [
+          {
+            attribute: "enabled_in_store",
+            value: "true",
+            operator: "eq",
+          },
+          {
+            attribute: "is_return",
+            value: "false",
+            operator: "eq",
+          },
+        ],
+      },
+    ],
+  });
+  logger.info("Finished seeding Ecuador region.");
+
   await linkSalesChannelsToStockLocationWorkflow(container).run({
     input: {
       id: stockLocation.id,
