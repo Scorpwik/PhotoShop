@@ -1,158 +1,127 @@
-<p align="center">
-  <a href="https://www.medusajs.com">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/59018053/229103275-b5e482bb-4601-46e6-8142-244f531cebdb.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/59018053/229103726-e5b529a3-9b3f-4970-8a1f-c6af37f087bf.svg">
-    <img alt="Medusa logo" src="https://user-images.githubusercontent.com/59018053/229103726-e5b529a3-9b3f-4970-8a1f-c6af37f087bf.svg">
-    </picture>
-  </a>
-</p>
-<h1 align="center">
-  Medusa DTC Starter
-</h1>
+# CAMERA PRO
 
-<h4 align="center">
-  <a href="https://docs.medusajs.com">Documentation</a> |
-  <a href="https://www.medusajs.com">Website</a>
-</h4>
+Tienda de equipamiento fotográfico. El backend es Medusa y la tienda es Next.js.
 
-<p align="center">
-  Building blocks for digital commerce
-</p>
-<p align="center">
-  <a href="https://github.com/medusajs/medusa/blob/develop/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Medusa is released under the MIT license." />
-  </a>
-  <a href="https://circleci.com/gh/medusajs/medusa">
-    <img src="https://circleci.com/gh/medusajs/medusa.svg?style=shield" alt="Current CircleCI build status." />
-  </a>
-  <a href="https://github.com/medusajs/medusa/blob/develop/CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt="PRs welcome!" />
-  </a>
-    <a href="https://www.producthunt.com/posts/medusa"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Day-%23DA552E" alt="Product Hunt"></a>
-  <a href="https://discord.gg/xpCwq3Kfn8">
-    <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=medusajs">
-    <img src="https://img.shields.io/twitter/follow/medusajs.svg?label=Follow%20@medusajs" alt="Follow @medusajs" />
-  </a>
-</p>
+El catálogo incluye cámaras, lentes, trípodes y accesorios. Se puede armar el carrito, pagar con el pago manual de prueba, crear una cuenta y ver el pedido confirmado.
 
-# Medusa DTC Starter
+Hay dos regiones:
 
-A production-ready monorepo starter for direct-to-consumer ecommerce stores powered by Medusa and Next.js. Includes a fully featured storefront with product browsing, cart, checkout, customer accounts, and order management.
+| URL | Región | Moneda |
+| --- | --- | --- |
+| http://localhost:8000/dk | Europa | EUR |
+| http://localhost:8000/ec | Ecuador | USD |
 
-## Features
+`/dk` es la región por defecto.
 
-- All of [Medusa's commerce features](https://docs.medusajs.com/resources/commerce-modules)
-- Multi-region support with automatic country detection
-- Product catalog with variant selection
-- Cart with promotion codes
-- Multi-step checkout with shipping and payment
-- Customer accounts with order history and address management
-- Order transfer between accounts
+## Requisitos
 
-## Getting Started
+- Node.js 20.19 o superior, o Node.js 22.12 o superior
+- [pnpm](https://pnpm.io/) 10
+- PostgreSQL 15 o superior
 
-### Deploy with Medusa Cloud
+Redis no hace falta para correr el proyecto en local.
 
-The fastest way to get started is deploying with [Medusa Cloud](https://cloud.medusajs.com):
+## Correr en local
 
-1. [Create a Medusa Cloud account](https://cloud.medusajs.com)
-2. Deploy this starter directly from your dashboard
+Abre dos terminales en la raíz del repositorio. El backend tiene que estar listo antes de abrir la tienda.
 
-### Local Installation
-
-> **Prerequisites:
->
-> - [Node.js](https://nodejs.org/) v20+
-> - [PostgreSQL](https://www.postgresql.org/) v15+
-> - [pnpm](https://pnpm.io/) v10+
-
-1. Clone the repository and install dependencies:
+### 1. Instalar dependencias
 
 ```bash
-git clone https://github.com/medusajs/dtc-starter.git
-cd dtc-starter
 pnpm install
 ```
 
-2. Set up environment variables for the backend:
+### 2. Crear la base de datos
+
+En PostgreSQL, crea una base vacía. El nombre del template es `medusa-backend`:
+
+```bash
+createdb medusa-backend
+```
+
+### 3. Configurar el backend
 
 ```bash
 cp apps/backend/.env.template apps/backend/.env
 ```
 
-3. Set the database URL in `apps/backend.env`:
+En `apps/backend/.env`, completa `DATABASE_URL` con tu usuario y contraseña de PostgreSQL:
 
 ```bash
-# Replace with actual database URL, make sure the database exists.
-DATABASE_URL=postgres://postgres:@localhost:5432/medusa-dtc-starter
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/medusa-backend
 ```
 
-4. Run migrations:
+`JWT_SECRET` y `COOKIE_SECRET` pueden quedarse como `supersecret` en local. Cámbialos si el proyecto sale de tu máquina.
+
+### 4. Migrar y cargar los datos
+
+Desde `apps/backend`:
 
 ```bash
 cd apps/backend
-pnpm medusa db:migrate
+pnpm exec medusa db:migrate
 ```
 
-5. Add admin user:
+La primera migración crea las regiones, el envío, el catálogo de CAMERA PRO y el inventario.
+
+Crea el usuario del admin:
 
 ```bash
-cd apps/backend
-pnpm medusa user -e admin@test.com -p supersecret
+pnpm exec medusa user -e admin@test.com -p supersecret
 ```
 
-6. Start Medusa backend:
+### 5. Arrancar el backend
+
+Sigue en `apps/backend`:
 
 ```bash
-cd apps/backend
 pnpm dev
 ```
 
-7. Open the admin dashboard at `localhost:9000/app` and log in. Retrieve your publishable API key at Settings > Publishable API key.
+- API: http://localhost:9000
+- Admin: http://localhost:9000/app
 
-8. Set up environment variables for the storefront:
+Entra con `admin@test.com` y `supersecret`. En **Settings → Publishable API Keys**, copia la clave publicable. La tienda no arranca sin ella.
+
+### 6. Configurar la tienda
+
+En otra terminal, desde la raíz, crea `apps/storefront/.env.local`:
 
 ```bash
-cp apps/storefront/.env.template apps/storefront/.env.local
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_tu_clave
+NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
+NEXT_PUBLIC_DEFAULT_REGION=dk
+NEXT_PUBLIC_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_STRIPE_KEY=
 ```
 
-9. Update `apps/storefront/.env.local` with your Medusa publishable API key:
+`NEXT_PUBLIC_STRIPE_KEY` puede quedar vacío. El checkout local usa el pago manual de Medusa.
 
-```bash
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_6c3...
-```
-
-10.  Start storefront:
+### 7. Arrancar la tienda
 
 ```bash
 cd apps/storefront
 pnpm dev
 ```
 
-The storefront runs on `http://localhost:8000`.
+Abre http://localhost:8000. La tienda redirige a http://localhost:8000/dk.
 
-You can slo run the following command from the root to start both backend and storefront:
+Para ver precios en dólares, entra a http://localhost:8000/ec.
+
+## Día a día
+
+Con la base ya migrada y los `.env` listos, desde la raíz:
 
 ```bash
 pnpm dev
 ```
 
-## Configuration
+Eso levanta el backend y la tienda. También puedes usar `pnpm backend:dev` y `pnpm storefront:dev` por separado.
 
-The storefront is configured via environment variables in `apps/storefront/.env.local`:
+## Páginas
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | Publishable API key from your Medusa backend | — |
-| `NEXT_PUBLIC_MEDUSA_BACKEND_URL` | URL of your Medusa backend | `http://localhost:9000` |
-| `NEXT_PUBLIC_DEFAULT_REGION` | Default region country code | `dk` |
-| `NEXT_PUBLIC_BASE_URL` | Base URL of the storefront | `https://localhost:8000` |
-| `NEXT_PUBLIC_STRIPE_KEY` | Stripe publishable key (optional) | — |
-
-## Resources
-
-- [Medusa Documentation](https://docs.medusajs.com)
-- [Medusa Cloud](https://cloud.medusajs.com)
+- Inicio: `/dk` o `/ec`
+- Tienda: `/dk/store` y `/ec/store`
+- Ofertas: `/dk/deals` y `/ec/deals`
+- Carrito, checkout y cuenta, con el código de país en la URL
+- Admin: http://localhost:9000/app
