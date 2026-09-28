@@ -49,7 +49,7 @@ export default function Footer() {
           <div className="space-y-6">
             <LocalizedClientLink href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-accent flex items-center justify-center text-dark-100 font-black text-sm">
-                CP
+                P
               </div>
               <span className="text-xl font-black tracking-tighter">
                 CAMERA<span className="text-accent">PRO</span>

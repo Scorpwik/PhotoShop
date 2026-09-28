@@ -34,6 +34,7 @@ export default function StorePage({
   const searchParams = useSearchParams()
   const { countryCode } = useParams<{ countryCode: string }>()
   const categoryFromUrl = searchParams.get("category") || "all"
+  const searchQuery = searchParams.get("q") || ""
   const [active, setActive] = useState(categoryFromUrl)
   const [showFilters, setShowFilters] = useState(categoryFromUrl !== "all")
   const [catalog, setCatalog] = useState<CatalogProduct[]>(() =>
@@ -65,16 +66,29 @@ export default function StorePage({
   }, [countryCode])
 
   const products = useMemo(() => {
-    const source = dealsOnly
+    let source = dealsOnly
       ? catalog.filter((product) => product.badge)
       : catalog
 
-    if (active === "all") {
-      return source
+    if (active !== "all") {
+      source = source.filter((product) => product.categorySlug === active)
     }
 
-    return source.filter((product) => product.categorySlug === active)
-  }, [active, catalog, dealsOnly])
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase().trim()
+      source = source.filter(
+        (product) =>
+          product.name.toLowerCase().includes(q) ||
+          product.category.toLowerCase().includes(q)
+      )
+    }
+
+    return source
+  }, [active, catalog, dealsOnly, searchQuery])
+
+  const displayTitle = searchQuery
+    ? `BÚSQUEDA:\n"${searchQuery}"`
+    : title
 
   return (
     <div className="min-h-screen bg-dark-100 pt-24">
@@ -82,10 +96,10 @@ export default function StorePage({
         <div className="max-w-7xl mx-auto px-gutter space-y-8">
           <div>
             <p className="text-accent font-bold uppercase tracking-widest text-sm mb-4">
-              {subtitle}
+              {searchQuery ? "RESULTADOS DE BÚSQUEDA" : subtitle}
             </p>
             <h1 className="text-6xl md:text-7xl font-black leading-tight whitespace-pre-line">
-              {title}
+              {displayTitle}
             </h1>
           </div>
 
