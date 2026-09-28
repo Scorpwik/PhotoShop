@@ -14,6 +14,21 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
   customer,
   children,
 }) => {
+  if (!customer) {
+    return (
+      <div
+        className="account-auth min-h-screen bg-dark-100 pt-28 pb-24"
+        data-testid="account-page"
+      >
+        <div className="mx-auto w-full max-w-md px-6">
+          <div className="rounded-[28px] border border-white/10 bg-dark-50/80 p-8 backdrop-blur-xl">
+            {children}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 small:py-12" data-testid="account-page">
       <div className="flex-1 content-container h-full max-w-5xl mx-auto bg-white flex flex-col">

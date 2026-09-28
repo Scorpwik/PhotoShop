@@ -4,6 +4,7 @@ import {
   CatalogProduct,
   catalogProducts,
   fetchCatalogProducts,
+  mergeCatalog,
 } from "@lib/catalog"
 import ProductCard from "@components/store/product-card"
 import { SlidersHorizontal } from "lucide-react"
@@ -49,7 +50,7 @@ export default function StorePage({
     fetchCatalogProducts()
       .then((products) => {
         if (activeRequest && products.length) {
-          setCatalog(products)
+          setCatalog((current) => mergeCatalog(current, products))
         }
       })
       .catch(() => {})
@@ -122,7 +123,7 @@ export default function StorePage({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
               <ProductCard
-                key={product.id}
+                key={product.handle}
                 product={product}
                 imageHeight="h-96"
               />

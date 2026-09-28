@@ -20,16 +20,18 @@ const Register = ({ setCurrentView }: Props) => {
       className="max-w-sm flex flex-col items-center"
       data-testid="register-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">
-        Become a Medusa Store Member
+      <p className="text-accent mb-3 text-xs font-bold uppercase tracking-widest">
+        Cuenta
+      </p>
+      <h1 className="mb-3 text-center text-3xl font-black text-text-primary">
+        Crea tu cuenta
       </h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-4">
-        Create your Medusa Store Member profile, and get access to an enhanced
-        shopping experience.
+      <p className="mb-4 text-center text-sm text-text-secondary">
+        Regístrate para guardar tus pedidos y pagar más rápido.
       </p>
       {message?.state === "verification_required" && (
         <div
-          className="w-full mb-4 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
+          className="mb-4 w-full rounded-2xl border border-white/10 bg-dark-200 p-4 text-center text-sm text-text-secondary"
           data-testid="register-verification-message"
         >
           We sent a verification link to <strong>{message.email}</strong>.
@@ -39,21 +41,21 @@ const Register = ({ setCurrentView }: Props) => {
       <form className="w-full flex flex-col" action={formAction}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
-            label="First name"
+            label="Nombre"
             name="first_name"
             required
             autoComplete="given-name"
             data-testid="first-name-input"
           />
           <Input
-            label="Last name"
+            label="Apellido"
             name="last_name"
             required
             autoComplete="family-name"
             data-testid="last-name-input"
           />
           <Input
-            label="Email"
+            label="Correo"
             name="email"
             required
             type="email"
@@ -61,14 +63,14 @@ const Register = ({ setCurrentView }: Props) => {
             data-testid="email-input"
           />
           <Input
-            label="Phone"
+            label="Teléfono"
             name="phone"
             type="tel"
             autoComplete="tel"
             data-testid="phone-input"
           />
           <Input
-            label="Password"
+            label="Contraseña"
             name="password"
             required
             type="password"
@@ -80,36 +82,35 @@ const Register = ({ setCurrentView }: Props) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="register-error"
         />
-        <span className="text-center text-ui-fg-base text-small-regular mt-6">
-          By creating an account, you agree to Medusa Store&apos;s{" "}
+        <span className="mt-6 text-center text-sm text-text-secondary">
+          Al crear una cuenta aceptas la{" "}
           <LocalizedClientLink
             href="/content/privacy-policy"
-            className="underline"
+            className="text-accent"
           >
-            Privacy Policy
+            política de privacidad
           </LocalizedClientLink>{" "}
-          and{" "}
-          <LocalizedClientLink
-            href="/content/terms-of-use"
-            className="underline"
-          >
-            Terms of Use
+          y los{" "}
+          <LocalizedClientLink href="/content/terms-of-use" className="text-accent">
+            términos de uso
           </LocalizedClientLink>
           .
         </span>
-        <SubmitButton className="w-full mt-6" data-testid="register-button">
-          Join
+        <SubmitButton
+          className="mt-6 w-full !rounded-full !bg-accent !text-white hover:!bg-accent/85"
+          data-testid="register-button"
+        >
+          Crear cuenta
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        Already a member?{" "}
+      <span className="mt-6 text-center text-sm text-text-secondary">
+        ¿Ya tienes cuenta?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.SIGN_IN)}
-          className="underline"
+          className="font-bold text-accent"
         >
-          Sign in
+          Inicia sesión
         </button>
-        .
       </span>
     </div>
   )

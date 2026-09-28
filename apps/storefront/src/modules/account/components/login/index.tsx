@@ -17,13 +17,18 @@ const Login = ({ setCurrentView }: Props) => {
       className="max-w-sm w-full flex flex-col items-center"
       data-testid="login-page"
     >
-      <h1 className="text-large-semi uppercase mb-6">Welcome back</h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-8">
-        Sign in to access an enhanced shopping experience.
+      <p className="text-accent mb-3 text-xs font-bold uppercase tracking-widest">
+        Cuenta
+      </p>
+      <h1 className="mb-3 text-3xl font-black text-text-primary">
+        Inicia sesión
+      </h1>
+      <p className="mb-8 text-center text-sm text-text-secondary">
+        Entra para ver tus pedidos y pagar más rápido.
       </p>
       {message?.state === "verification_required" && (
         <div
-          className="w-full mb-6 text-center text-base-regular text-ui-fg-base bg-ui-bg-subtle border border-ui-border-base rounded-rounded p-4"
+          className="mb-6 w-full rounded-2xl border border-white/10 bg-dark-200 p-4 text-center text-sm text-text-secondary"
           data-testid="login-verification-message"
         >
           We sent a verification link to <strong>{message.email}</strong>.
@@ -33,7 +38,7 @@ const Login = ({ setCurrentView }: Props) => {
       <form className="w-full" action={formAction}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
-            label="Email"
+            label="Correo"
             name="email"
             type="email"
             title="Enter a valid email address."
@@ -42,7 +47,7 @@ const Login = ({ setCurrentView }: Props) => {
             data-testid="email-input"
           />
           <Input
-            label="Password"
+            label="Contraseña"
             name="password"
             type="password"
             autoComplete="current-password"
@@ -54,20 +59,22 @@ const Login = ({ setCurrentView }: Props) => {
           error={message?.state === "error" ? message.error : null}
           data-testid="login-error-message"
         />
-        <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
-          Sign in
+        <SubmitButton
+          data-testid="sign-in-button"
+          className="mt-6 w-full !rounded-full !bg-accent !text-white hover:!bg-accent/85"
+        >
+          Entrar
         </SubmitButton>
       </form>
-      <span className="text-center text-ui-fg-base text-small-regular mt-6">
-        Not a member?{" "}
+      <span className="mt-6 text-center text-sm text-text-secondary">
+        ¿No tienes cuenta?{" "}
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
-          className="underline"
+          className="font-bold text-accent"
           data-testid="register-button"
         >
-          Join us
+          Regístrate
         </button>
-        .
       </span>
     </div>
   )

@@ -1,7 +1,11 @@
 "use client"
 
+import { addToCart } from "@lib/data/cart"
 import { CatalogProduct } from "@lib/catalog"
+import { listProducts } from "@lib/data/products"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 type ProductCardProps = {
   product: CatalogProduct
@@ -9,14 +13,77 @@ type ProductCardProps = {
   cover?: boolean
 }
 
+type CartStatus = "idle" | "adding" | "added" | "error"
+
 export default function ProductCard({
   product,
   imageHeight = "h-80",
   cover = false,
 }: ProductCardProps) {
+  const router = useRouter()
+  const params = useParams()
+  const countryCode = Array.isArray(params.countryCode)
+    ? params.countryCode[0]
+    : params.countryCode
+  const [status, setStatus] = useState<CartStatus>("idle")
+  const detailsHref = `/products/${product.handle}`
+
+  useEffect(() => {
+    if (status !== "added" && status !== "error") {
+      return
+    }
+
+    const timer = window.setTimeout(() => setStatus("idle"), 1800)
+    return () => window.clearTimeout(timer)
+  }, [status])
+
+  const handleAddToCart = async () => {
+    if (!countryCode || status === "adding") {
+      return
+    }
+
+    setStatus("adding")
+
+    try {
+      let variantId = product.variantId
+
+      if (!variantId) {
+        const { response } = await listProducts({
+          countryCode,
+          queryParams: { handle: product.handle, limit: 1 },
+        })
+        variantId = response.products[0]?.variants?.[0]?.id
+      }
+
+      if (!variantId) {
+        setStatus("error")
+        return
+      }
+
+      await addToCart({
+        variantId,
+        quantity: 1,
+        countryCode,
+      })
+      setStatus("added")
+      router.refresh()
+    } catch {
+      setStatus("error")
+    }
+  }
+
+  const cartLabel =
+    status === "adding"
+      ? "Agregando..."
+      : status === "added"
+        ? "Agregado"
+        : status === "error"
+          ? "Inténtalo de nuevo"
+          : "Agregar al Carrito"
+
   return (
-    <LocalizedClientLink href="/store" className="block h-full">
-      <div className="group cursor-pointer h-full">
+    <div className="group h-full flex flex-col">
+      <LocalizedClientLink href={detailsHref} className="block">
         <div
           className={`relative ${imageHeight} overflow-hidden rounded-t-[28px] border border-white/10 bg-dark-200 group-hover:border-accent/40 transition-colors`}
         >
@@ -40,8 +107,10 @@ export default function ProductCard({
             </span>
           </div>
         </div>
+      </LocalizedClientLink>
 
-        <div className="bg-dark-50/80 backdrop-blur-xl border border-t-0 border-white/10 rounded-b-[28px] p-6 space-y-3">
+      <div className="flex flex-1 flex-col gap-3 bg-dark-50/80 backdrop-blur-xl border border-t-0 border-white/10 rounded-b-[28px] p-6">
+        <LocalizedClientLink href={detailsHref} className="block space-y-3">
           <p className="text-accent font-bold text-xs uppercase tracking-widest">
             {product.category}
           </p>
@@ -49,11 +118,16 @@ export default function ProductCard({
             {product.name}
           </h3>
           <p className="text-accent font-black text-lg">{product.price}</p>
-          <span className="btn-glass-primary block w-full text-center py-3 font-bold uppercase tracking-wider">
-            Agregar al Carrito
-          </span>
-        </div>
+        </LocalizedClientLink>
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={status === "adding"}
+          className="btn-glass-primary mt-auto w-full py-3 font-bold uppercase tracking-wider disabled:opacity-60"
+        >
+          {cartLabel}
+        </button>
       </div>
-    </LocalizedClientLink>
+    </div>
   )
 }

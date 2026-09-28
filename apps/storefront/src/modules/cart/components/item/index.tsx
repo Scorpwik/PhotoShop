@@ -40,12 +40,17 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
       })
   }
 
-  // TODO: Update this to grab the actual max inventory
   const maxQtyFromInventory = 10
   const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+  const onDark = type === "full"
 
   return (
-    <Table.Row className="w-full" data-testid="product-row">
+    <Table.Row
+      className={clx("w-full", {
+        "border-white/10 hover:!bg-white/[0.04]": onDark,
+      })}
+      data-testid="product-row"
+    >
       <Table.Cell className="!pl-0 p-4 w-24">
         <LocalizedClientLink
           href={`/products/${item.product_handle}`}
@@ -58,31 +63,46 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
             thumbnail={item.thumbnail}
             images={item.variant?.product?.images}
             size="square"
+            className={
+              onDark
+                ? "!bg-dark-200 !shadow-none border border-white/10"
+                : undefined
+            }
           />
         </LocalizedClientLink>
       </Table.Cell>
 
       <Table.Cell className="text-left">
         <Text
-          className="txt-medium-plus text-ui-fg-base"
+          className={clx("txt-medium-plus", {
+            "text-text-primary": onDark,
+            "text-ui-fg-base": !onDark,
+          })}
           data-testid="product-title"
         >
           {item.product_title}
         </Text>
-        <LineItemOptions variant={item.variant} data-testid="product-variant" />
+        <LineItemOptions
+          variant={item.variant}
+          data-testid="product-variant"
+          className={onDark ? "!text-text-secondary" : undefined}
+        />
       </Table.Cell>
 
       {type === "full" && (
         <Table.Cell>
           <div className="flex gap-2 items-center w-28">
-            <DeleteButton id={item.id} data-testid="product-delete-button" />
+            <DeleteButton
+              id={item.id}
+              className="!text-text-secondary hover:!text-text-primary"
+              data-testid="product-delete-button"
+            />
             <CartItemSelect
               value={item.quantity}
               onChange={(value) => changeQuantity(parseInt(value.target.value))}
-              className="w-14 h-10 p-4"
+              className="w-14 h-10 p-4 !border-white/20 !bg-transparent !text-white"
               data-testid="product-select-button"
             >
-              {/* TODO: Update this with the v2 way of managing inventory */}
               {Array.from(
                 {
                   length: Math.min(maxQuantity, 10),
@@ -110,6 +130,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
             item={item}
             style="tight"
             currencyCode={currencyCode}
+            className="!text-text-secondary"
           />
         </Table.Cell>
       )}
@@ -134,6 +155,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
             item={item}
             style="tight"
             currencyCode={currencyCode}
+            className={onDark ? "!text-text-primary" : undefined}
           />
         </span>
       </Table.Cell>

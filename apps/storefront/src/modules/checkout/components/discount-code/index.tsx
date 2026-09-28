@@ -12,9 +12,13 @@ import { SubmitButton } from "../submit-button"
 
 type DiscountCodeProps = {
   cart: HttpTypes.StoreCart
+  variant?: "light" | "dark"
 }
 
-const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
+const DiscountCode: React.FC<DiscountCodeProps> = ({
+  cart,
+  variant = "light",
+}) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState("")
 
@@ -53,15 +57,27 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     }
   }
 
+  const dark = variant === "dark"
+
   return (
-    <div className="w-full bg-white flex flex-col">
+    <div
+      className={
+        dark
+          ? "w-full flex flex-col text-text-secondary"
+          : "w-full bg-white flex flex-col"
+      }
+    >
       <div className="txt-medium">
         <form action={(a) => addPromotionCode(a)} className="w-full mb-5">
           <Label className="flex gap-x-1 my-2 items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+              className={
+                dark
+                  ? "text-sm font-bold uppercase tracking-wider text-accent"
+                  : "txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
+              }
               data-testid="add-discount-button"
             >
               Add Promotion Code(s)
@@ -76,7 +92,11 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
             <>
               <div className="flex w-full gap-x-2">
                 <Input
-                  className="size-full"
+                  className={
+                    dark
+                      ? "size-full !rounded-full !border-white/20 !bg-dark-200 !text-white focus:!ring-accent focus:!ring-offset-0"
+                      : "size-full"
+                  }
                   id="promotion-input"
                   name="code"
                   type="text"
@@ -85,6 +105,11 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                 />
                 <SubmitButton
                   variant="secondary"
+                  className={
+                    dark
+                      ? "!rounded-full !bg-accent !text-white hover:!bg-accent/85"
+                      : undefined
+                  }
                   data-testid="discount-apply-button"
                 >
                   Apply

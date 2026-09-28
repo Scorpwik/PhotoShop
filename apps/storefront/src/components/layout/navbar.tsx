@@ -2,6 +2,7 @@
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { Menu, Search, ShoppingBag, X } from "lucide-react"
+import { usePathname } from "next/navigation"
 import { useState } from "react"
 
 type NavbarProps = {
@@ -10,8 +11,14 @@ type NavbarProps = {
 
 export default function Navbar({ cartCount = 0 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
+  const hideInicio =
+    pathname === "/" ||
+    /^\/[a-z]{2}\/?$/.test(pathname) ||
+    pathname.includes("/checkout")
 
   const navItems = [
+    ...(hideInicio ? [] : [{ label: "INICIO", href: "/" }]),
     { label: "CÁMARAS", href: "/store?category=camaras" },
     { label: "LENTES", href: "/store?category=lentes" },
     { label: "ACCESORIOS", href: "/store?category=accesorios" },

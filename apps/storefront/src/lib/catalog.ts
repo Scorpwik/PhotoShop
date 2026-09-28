@@ -1,5 +1,7 @@
 export type CatalogProduct = {
   id: string
+  handle: string
+  variantId?: string
   name: string
   category: string
   categorySlug:
@@ -24,6 +26,7 @@ const categoryNames: Record<string, string> = {
 export const catalogProducts: CatalogProduct[] = [
   {
     id: "sony-alpha-7",
+    handle: "sony-alpha-7",
     name: "Sony α7",
     category: "Cámaras",
     categorySlug: "camaras",
@@ -33,6 +36,7 @@ export const catalogProducts: CatalogProduct[] = [
   },
   {
     id: "lentes-sony-fe",
+    handle: "lentes-sony-fe",
     name: "Lentes Sony FE",
     category: "Lentes",
     categorySlug: "lentes",
@@ -42,6 +46,7 @@ export const catalogProducts: CatalogProduct[] = [
   },
   {
     id: "sony-fe-70-200-gm",
+    handle: "sony-fe-70-200-gm",
     name: "Sony FE 70-200mm GM OSS",
     category: "Lentes",
     categorySlug: "lentes",
@@ -51,6 +56,7 @@ export const catalogProducts: CatalogProduct[] = [
   },
   {
     id: "tripode-fibra-carbono",
+    handle: "tripode-fibra-carbono",
     name: "Trípode de fibra de carbono",
     category: "Trípodes",
     categorySlug: "tripodes",
@@ -60,6 +66,7 @@ export const catalogProducts: CatalogProduct[] = [
   },
   {
     id: "kit-fotografia",
+    handle: "kit-fotografia",
     name: "Kit de fotografía",
     category: "Accesorios",
     categorySlug: "accesorios",
@@ -84,6 +91,7 @@ type StoreProduct = {
   categories?: { name?: string; handle?: string }[] | null
   images?: { url?: string }[] | null
   variants?: {
+    id?: string
     calculated_price?: {
       calculated_amount?: number
       currency_code?: string
@@ -110,6 +118,8 @@ function mapStoreProduct(product: StoreProduct): CatalogProduct {
 
   return {
     id: product.id,
+    handle: product.handle,
+    variantId: product.variants?.[0]?.id,
     name: product.title,
     category: product.categories?.[0]?.name || categoryNames[slug] || "Accesorios",
     categorySlug: categoryNames[slug] ? slug : "accesorios",
@@ -169,5 +179,48 @@ export async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
     products: StoreProduct[]
   }
 
-  return products.map(mapStoreProduct)
+  return orderCatalog(products.map(mapStoreProduct))
+}
+
+const catalogHandleOrder = new Map(
+  catalogProducts.map((product, index) => [product.handle, index])
+)
+
+export function orderCatalog(products: CatalogProduct[]) {
+  return [...products].sort((a, b) => {
+    const aIndex = catalogHandleOrder.get(a.handle) ?? Number.MAX_SAFE_INTEGER
+    const bIndex = catalogHandleOrder.get(b.handle) ?? Number.MAX_SAFE_INTEGER
+
+    if (aIndex !== bIndex) {
+      return aIndex - bIndex
+    }
+
+    return a.name.localeCompare(b.name, "es")
+  })
+}
+
+export function mergeCatalog(
+  current: CatalogProduct[],
+  incoming: CatalogProduct[]
+) {
+  const byHandle = new Map(incoming.map((product) => [product.handle, product]))
+  const seen = new Set<string>()
+  const merged = current.flatMap((product) => {
+    const next = byHandle.get(product.handle)
+
+    if (!next) {
+      return [product]
+    }
+
+    seen.add(product.handle)
+    return [next]
+  })
+
+  for (const product of orderCatalog(incoming)) {
+    if (!seen.has(product.handle)) {
+      merged.push(product)
+    }
+  }
+
+  return merged
 }

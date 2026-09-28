@@ -126,13 +126,16 @@ export default function ProductActions({
 
     setIsAdding(true)
 
-    await addToCart({
-      variantId: selectedVariant.id,
-      quantity: 1,
-      countryCode,
-    })
-
-    setIsAdding(false)
+    try {
+      await addToCart({
+        variantId: selectedVariant.id,
+        quantity: 1,
+        countryCode,
+      })
+      router.refresh()
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   return (
@@ -172,15 +175,15 @@ export default function ProductActions({
             !isValidVariant
           }
           variant="primary"
-          className="w-full h-10"
+          className="!bg-accent hover:!bg-accent/85 !text-white w-full h-12 rounded-full font-bold uppercase tracking-wider"
           isLoading={isAdding}
           data-testid="add-product-button"
         >
           {!selectedVariant
-            ? "Select variant"
+            ? "Elige una opción"
             : !inStock || !isValidVariant
-            ? "Out of stock"
-            : "Add to cart"}
+            ? "Sin stock"
+            : "Agregar al carrito"}
         </Button>
         <MobileActions
           product={product}

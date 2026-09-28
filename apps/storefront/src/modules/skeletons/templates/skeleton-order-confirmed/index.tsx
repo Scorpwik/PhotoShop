@@ -4,9 +4,9 @@ import SkeletonOrderItems from "@modules/skeletons/components/skeleton-order-ite
 
 const SkeletonOrderConfirmed = () => {
   return (
-    <div className="bg-gray-50 py-6 min-h-[calc(100vh-64px)] animate-pulse">
+    <div className="min-h-screen animate-pulse bg-dark-100 pb-16 pt-28">
       <div className="content-container flex justify-center">
-        <div className="max-w-4xl h-full bg-white w-full p-10">
+        <div className="h-full w-full max-w-4xl rounded-[28px] border border-white/10 bg-dark-50/80 p-10">
           <SkeletonOrderConfirmedHeader />
 
           <SkeletonOrderItems />
